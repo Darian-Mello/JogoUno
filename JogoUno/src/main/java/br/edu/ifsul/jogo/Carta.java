@@ -4,10 +4,51 @@
  */
 package br.edu.ifsul.jogo;
 
+import java.io.Serializable;
+
 /**
  *
  * @author Dariãn
  */
-public class Carta {
+public class Carta implements Serializable {
+    private Integer numero;
+    private String simbolo;
+    private String cor;
+    private Integer totalCompra;
     
+    public Carta () {
+        
+    }
+
+    public Integer getNumero() {
+        return numero;
+    }
+
+    public void setNumero(Integer numero) {
+        this.numero = numero;
+    }
+
+    public String getSimbolo() {
+        return simbolo;
+    }
+
+    public void setSimbolo(String simbolo) {
+        this.simbolo = simbolo;
+    }
+
+    public String getCor() {
+        return cor;
+    }
+
+    public void setCor(String cor) {
+        this.cor = cor;
+    }
+
+    public Integer getTotalCompra() {
+        return totalCompra;
+    }
+
+    public void setTotalCompra(Integer totalCompra) {
+        this.totalCompra = totalCompra;
+    }
 }

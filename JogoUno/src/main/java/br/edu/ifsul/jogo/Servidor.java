@@ -66,6 +66,17 @@ public class Servidor extends Thread {
         }
     }
     
+    // Funcao de pesca(), que vai distribuir uma carta para o jogador da vez;
+    
+    // Funcao jogada(), erceber a carta selecionada pelo jogador, e adicionala ao lixo;
+    
+    // falarUno(), quandoi um jogador fala a palavra Uno, essa funcao é chamada para verificar se a palavra foi dita num mumento certo, e quem deverá comprar mais cartas(vai chamar a pesca)
+    
+    // darCartas(), distribuir o jogo para os jogadores;
+    
+    // encerrarJogo(), quando houver um ganhador, ou a quantidade de pessoas conectadas não for suficiente para dar seguimento a partida, deve mandar uma mensagem aos conectados, e 
+    // encerrar o jogo. depois diso, ou iniciar um novo, ou desconectar as pessoas
+    
     public static void main(String args[]) {
         jogadores = new ArrayList<Jogador>();
         try {
