@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -47,9 +48,9 @@ public class JogadorNoJogo extends Thread {
         try {
             Socket conexao = new Socket("127.0.0.1", 2222);
             PrintStream saida = new PrintStream(conexao.getOutputStream());
-            BufferedReader teclado= new BufferedReader(new InputStreamReader(System.in));
+            //BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in));
             System.out.println("Bem vindo ao jogo Uno, entre com o seu nome: ");
-            String nomeJogador = teclado.readLine();
+            String nomeJogador = JOptionPane.showInputDialog("Informe o seu nome: ");
             saida.println(nomeJogador);
             
             Thread t = new JogadorNoJogo(conexao);
@@ -57,8 +58,7 @@ public class JogadorNoJogo extends Thread {
             String linha;
             
             while (true) {
-                System.out.println("> ");
-                linha = teclado.readLine();
+                linha = JOptionPane.showInputDialog("Digite uma mensagem: ");
                 
                 if (terminarExecucao) {
                     break;

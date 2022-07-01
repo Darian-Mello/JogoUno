@@ -17,7 +17,10 @@ public class Carta implements Serializable {
     private Integer totalCompra;
     
     public Carta () {
-        
+        numero = 0;
+        simbolo = "";
+        cor = "";
+        totalCompra = 0;
     }
 
     public Integer getNumero() {

@@ -23,6 +23,8 @@ public class Servidor extends Thread {
     private Jogador jogador;
     private Socket conexao;
     private String nomeJogador;
+    private static Baralho baralho = new Baralho();
+    private static boolean jogoComecou = false;
     
     public Servidor (Jogador j) {
         jogador = j;
@@ -48,10 +50,14 @@ public class Servidor extends Thread {
             }
             sendToAll(saida, " saiu ", "do jogo!");
             jogadores.remove(saida);
-            conexao.close();
+            jogador.getSocket().close();
         } catch (IOException e) {
             System.out.println("IOException: " + e);
         }
+    }
+    
+    public static void enviarMensagem (Jogador j) {
+        PrintStream chat = (PrintStream) outroCliente.getSaida();
     }
     
     public void sendToAll(PrintStream saida, String acao, String linha) throws IOException {
@@ -66,13 +72,26 @@ public class Servidor extends Thread {
         }
     }
     
+    public static void darCartas () {
+        Iterator<Jogador> iter = jogadores.iterator();
+        baralho.embaralhar();
+        while (iter.hasNext()) {
+            Jogador j = iter.next();
+            for (int i = 0; i < 7; i++) {
+                Carta c = new Carta();
+                c = baralho.getBaralho().get(0);
+                baralho.getBaralho().remove(0);
+                j.setMao(new ArrayList<>());
+                j.getMao().add(c);
+            }
+        }
+    }
+    
     // Funcao de pesca(), que vai distribuir uma carta para o jogador da vez;
     
     // Funcao jogada(), erceber a carta selecionada pelo jogador, e adicionala ao lixo;
     
     // falarUno(), quandoi um jogador fala a palavra Uno, essa funcao é chamada para verificar se a palavra foi dita num mumento certo, e quem deverá comprar mais cartas(vai chamar a pesca)
-    
-    // darCartas(), distribuir o jogo para os jogadores;
     
     // encerrarJogo(), quando houver um ganhador, ou a quantidade de pessoas conectadas não for suficiente para dar seguimento a partida, deve mandar uma mensagem aos conectados, e 
     // encerrar o jogo. depois diso, ou iniciar um novo, ou desconectar as pessoas
@@ -82,6 +101,10 @@ public class Servidor extends Thread {
         try {
             ServerSocket s = new ServerSocket(2222);
             while (true) {
+                if (jogoComecou) {
+                    break;
+                }
+                
                 System.out.println("Esperando algum jogador se conectar...");
                 Socket conexao = s.accept();
                 Jogador jogador = new Jogador();
