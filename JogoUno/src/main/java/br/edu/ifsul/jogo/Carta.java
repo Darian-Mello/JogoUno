@@ -15,9 +15,10 @@ public class Carta implements Serializable {
     private String simbolo;
     private String cor;
     private Integer totalCompra;
+    private String descricao;
     
     public Carta () {
-        numero = 0;
+        numero = null;
         simbolo = "";
         cor = "";
         totalCompra = 0;
@@ -53,5 +54,13 @@ public class Carta implements Serializable {
 
     public void setTotalCompra(Integer totalCompra) {
         this.totalCompra = totalCompra;
+    }
+    
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
     }
 }

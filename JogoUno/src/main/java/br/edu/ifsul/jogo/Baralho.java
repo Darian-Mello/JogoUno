@@ -30,17 +30,20 @@ public class Baralho implements Serializable {
             Carta c = new Carta();
             c.setSimbolo("Compra4");
             c.setTotalCompra(4);
+            c.setDescricao(" mais 4 ");
             baralho.add(c);
             
             // Gera as cartas de mudanca de cor
             c = new Carta();
             c.setSimbolo("MudaCor");
+            c.setDescricao(" Muda a cor ");
             baralho.add(c);
             
             // Gera os números 0
             c = new Carta();
             c.setNumero(0);
             c.setCor(cor);
+            c.setDescricao(" 0 " + cor + " ");
             baralho.add(c);
             
             for (int i = 0; i < 2; i++) {
@@ -49,6 +52,7 @@ public class Baralho implements Serializable {
                     c = new Carta();
                     c.setNumero(j);
                     c.setCor(cor);
+                    c.setDescricao(" " + j + " " + cor + " ");
                     baralho.add(c);
                 }
                             
@@ -56,12 +60,14 @@ public class Baralho implements Serializable {
                 c = new Carta();
                 c.setSimbolo("Bloqueio");
                 c.setCor(cor);
+                c.setDescricao(" Bloqueio " + cor + " ");
                 baralho.add(c);
                 
                 // Gera as cartas de inverter a ordem de jogo
                 c = new Carta();
                 c.setSimbolo("Inverte");
                 c.setCor(cor);
+                c.setDescricao(" Vira a ordem " + cor + " ");
                 baralho.add(c);
                 
                 // Gera as cartas de compra +2
@@ -69,6 +75,7 @@ public class Baralho implements Serializable {
                 c.setSimbolo("Compra2");
                 c.setCor(cor);
                 c.setTotalCompra(2);
+                c.setDescricao(" Mais 2 " + cor + " ");
                 baralho.add(c);
             }
         }
@@ -92,7 +99,6 @@ public class Baralho implements Serializable {
 
     public void setLixo(ArrayList<Carta> lixo) {
         this.lixo = lixo;
-    }
-    
+    }  
     
 }

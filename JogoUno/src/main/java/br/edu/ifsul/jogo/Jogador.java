@@ -20,9 +20,13 @@ public class Jogador implements Serializable {
     private PrintStream saida;
     private ArrayList<Carta> mao;
     private Boolean falouUno;
+    private Boolean vezDeJogar;
+    private boolean terminarConexao;
 
     public Jogador () {
-        
+        this.setVezDeJogar(false);
+        this.mao = new ArrayList<>();
+        this.terminarConexao = false;
     }
     
     public String getNome() {
@@ -72,6 +76,20 @@ public class Jogador implements Serializable {
     public void setFalouUno(Boolean falouUno) {
         this.falouUno = falouUno;
     }
-    
-    
+
+    public Boolean getVezDeJogar() {
+        return vezDeJogar;
+    }
+
+    public void setVezDeJogar(Boolean vezDeJogar) {
+        this.vezDeJogar = vezDeJogar;
+    }
+
+    public boolean getTerminarConexao() {
+        return terminarConexao;
+    }
+
+    public void setTerminarConexao(boolean terminarConexao) {
+        this.terminarConexao = terminarConexao;
+    }
 }

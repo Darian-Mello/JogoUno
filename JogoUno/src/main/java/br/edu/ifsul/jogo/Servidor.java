@@ -25,7 +25,7 @@ public class Servidor extends Thread {
     private String nomeJogador;
     private static Baralho baralho = new Baralho();
     private static boolean jogoComecou = false;
-    
+
     public Servidor (Jogador j) {
         jogador = j;
     }
@@ -35,40 +35,163 @@ public class Servidor extends Thread {
             BufferedReader entrada = new BufferedReader(new InputStreamReader(jogador.getSocket().getInputStream()));
             PrintStream saida = new PrintStream(jogador.getSocket().getOutputStream());
             jogador.setSaida(saida);
+            boolean jogoPodecomecar = true;
             
-            nomeJogador = entrada.readLine();
-            
-            if (nomeJogador == null) {
-                return;
-            }
+            do {
+                nomeJogador = entrada.readLine();
+            } while (nomeJogador == null);
             jogador.setNome(nomeJogador);
-
-            String linha = entrada.readLine();
-            while (linha != null && !(linha.trim().equals(""))) {
-                sendToAll(saida, " disse: ", linha);
-                linha = entrada.readLine();
+            sendTo(saida, jogador.getNome() + ", aguarde, o jogo já vai começar! ", jogador.getIp());
+            
+            for (Jogador j : jogadores) {
+                if (j.getNome() == null) {
+                    jogoPodecomecar = false;
+                }
             }
-            sendToAll(saida, " saiu ", "do jogo!");
+            if (jogadores.size() == 2 && jogoPodecomecar) {
+                jogoComecou = true;
+                darCartas();
+            }
+                            
+            if (jogoComecou) {
+                String mensagemInicioDoJogo = "O jogo esta começando, os jogadores são: ";
+                for (Jogador j : jogadores) {
+                    mensagemInicioDoJogo += j.getNome() + "; ";
+                }
+                sendToAll("", mensagemInicioDoJogo);
+                
+                PrintStream saida2 = new PrintStream(jogadores.get(0).getSocket().getOutputStream());
+                Carta c = baralho.getBaralho().get(0);
+                baralho.getBaralho().remove(0);
+                baralho.getLixo().add(c);
+                jogadores.get(0).setSaida(saida2);
+                jogadores.get(0).setVezDeJogar(true);
+                sendTo(saida2, jogadores.get(0).getNome() + ", você é o primeiro a jogar, pressione enter para fazer a sua jogada. ", jogadores.get(0).getIp());
+            }
+
+            while (!jogador.getTerminarConexao()) {
+                entrada.readLine();
+                if (jogoComecou && jogador.getVezDeJogar()) {
+                    String mao = montaMao();
+                    jogada(mao);
+                } else {
+                    if (!jogoComecou) {
+                        sendTo(saida, jogador.getNome() + ", aguarde, o jogo ainda não começou ", jogador.getIp());
+                    } else if (!jogador.getVezDeJogar()) {
+                        sendTo(saida, jogador.getNome() + ", ainda não é a sua vez de jogar ", jogador.getIp());
+                    }
+                }
+            }
             jogadores.remove(saida);
             jogador.getSocket().close();
         } catch (IOException e) {
-            System.out.println("IOException: " + e);
+            System.out.println("Exception: " + e.getMessage());
         }
     }
     
-    public static void enviarMensagem (Jogador j) {
-        PrintStream chat = (PrintStream) outroCliente.getSaida();
+    public void sendToAll(String acao, String texto) throws IOException {
+        Iterator<Jogador> iter = jogadores.iterator();
+        while (iter.hasNext()) {
+            Jogador j = iter.next();
+            PrintStream chat = (PrintStream) j.getSaida();
+            chat.println(acao + texto);
+        }
     }
     
-    public void sendToAll(PrintStream saida, String acao, String linha) throws IOException {
+    public void sendTo(PrintStream saida, String texto, String id_client) throws IOException {
 
         Iterator<Jogador> iter = jogadores.iterator();
         while (iter.hasNext()) {
-            Jogador outroCliente = iter.next();
-            PrintStream chat = (PrintStream) outroCliente.getSaida();
-            if (chat != saida) {
-                chat.println(jogador.getNome() + " com IP: " + jogador.getSocket().getRemoteSocketAddress() + acao + linha);
+            Jogador j = iter.next();
+            if (j.getIp().equals(id_client)) {
+                PrintStream chat = (PrintStream) j.getSaida();
+                chat.println(texto);
             }
+        }
+    }
+    
+    public String montaMao () {
+        String mao = "";
+        mao += "0 - Sair\n";
+        mao += "1 - Comprar uma carta\n";
+        mao += "2 - Falar Uno\n";
+        int cont = 3;
+        
+        for (Carta c : jogador.getMao()) {
+            mao += cont + " - " + c.getDescricao() + "\n";
+            cont++;
+        }
+        return mao;
+    }
+    
+    public void jogada (String mao) {
+        try {
+            boolean jogadaValida;
+            String escolha;
+            int opcao = 0;
+            
+            BufferedReader entrada = new BufferedReader(new InputStreamReader(jogador.getSocket().getInputStream()));
+            Carta cartaDaMesa = baralho.getLixo().get(baralho.getLixo().size()-1);
+            
+            String stringSaida = "É a sua vez de jogar, "
+                    + "a carta que esta na mesa é: " + cartaDaMesa.getDescricao() + "\n Escolha uma das opções:\n" + mao;
+            
+            sendTo(jogador.getSaida(), stringSaida, jogador.getIp());
+            do {
+                escolha = entrada.readLine();
+                jogadaValida = true;
+                
+                if (escolha == null || escolha.trim().equals("")) {
+                    sendTo(jogador.getSaida(), "A jogada efetuada não é valida, por favor informe um valor!", jogador.getIp());
+                    jogadaValida = false;
+                } else if (!(escolha.matches("[+-]?\\d*(\\.\\d+)?"))) {
+                    sendTo(jogador.getSaida(), "A jogada efetuada não é valida, por favor informe um número!", jogador.getIp());
+                    jogadaValida = false;
+                } else if (Integer.parseInt(escolha) < 0 || Integer.parseInt(escolha) > jogador.getMao().size()+2) {
+                    sendTo(jogador.getSaida(), "A jogada efetuada não é valida, por favor escolha uma das opções acima!", jogador.getIp());
+                    jogadaValida = false;
+                }
+                
+                if (jogadaValida) {
+                    opcao = Integer.parseInt(escolha);
+                    if (opcao >= 3) {
+                        if (jogador.getMao().get(opcao-3).getNumero() != null) {
+                            if (cartaDaMesa.getNumero() != null && (
+                                !(jogador.getMao().get(opcao-3).getCor().equals(cartaDaMesa.getCor())) || jogador.getMao().get(opcao-3).getNumero() != cartaDaMesa.getNumero())) {
+                                sendTo(jogador.getSaida(), "A jogada efetuada não é valida, a carta jogada deve possuir o mesmo número ou cor da carta da mesa!", jogador.getIp());
+                                jogadaValida = false;
+                            } else if (!cartaDaMesa.getSimbolo().equals("") && jogador.getMao().get(opcao-3).getNumero() != cartaDaMesa.getNumero()) {
+                                sendTo(jogador.getSaida(), "A jogada efetuada não é valida, a carta jogada deve possuir a mesma cor da carta da mesa!", jogador.getIp());
+                                jogadaValida = false;
+                            }
+                        }
+                    }
+                }
+                
+            } while (!jogadaValida);
+            
+            Carta c = jogador.getMao().get(opcao-3);
+            jogador.getMao().remove(opcao-3);
+            baralho.getLixo().add(c);
+            
+            int index = 0;
+            for (Jogador j : jogadores) {
+                if (j.getIp().equals(jogador.getIp())) {
+                    jogador.setVezDeJogar(false);
+                    index++;
+                    if (index == jogadores.size()) {
+                        index = 0;
+                    }
+                    jogadores.get(index).setVezDeJogar(true);
+                    PrintStream saida = new PrintStream(jogadores.get(index).getSocket().getOutputStream());
+                    sendTo(saida, jogadores.get(index).getNome() + ", é a sua vez, pressione enter para fazer a sua jogada: ", jogadores.get(index).getIp());
+                    break;
+                }
+                index++;
+            }
+          
+        } catch (IOException e) {
+            System.out.println("IOException: " + e);
         }
     }
     
@@ -81,40 +204,25 @@ public class Servidor extends Thread {
                 Carta c = new Carta();
                 c = baralho.getBaralho().get(0);
                 baralho.getBaralho().remove(0);
-                j.setMao(new ArrayList<>());
                 j.getMao().add(c);
             }
         }
     }
-    
-    // Funcao de pesca(), que vai distribuir uma carta para o jogador da vez;
-    
-    // Funcao jogada(), erceber a carta selecionada pelo jogador, e adicionala ao lixo;
-    
-    // falarUno(), quandoi um jogador fala a palavra Uno, essa funcao é chamada para verificar se a palavra foi dita num mumento certo, e quem deverá comprar mais cartas(vai chamar a pesca)
-    
-    // encerrarJogo(), quando houver um ganhador, ou a quantidade de pessoas conectadas não for suficiente para dar seguimento a partida, deve mandar uma mensagem aos conectados, e 
-    // encerrar o jogo. depois diso, ou iniciar um novo, ou desconectar as pessoas
     
     public static void main(String args[]) {
         jogadores = new ArrayList<Jogador>();
         try {
             ServerSocket s = new ServerSocket(2222);
             while (true) {
-                if (jogoComecou) {
-                    break;
-                }
-                
                 System.out.println("Esperando algum jogador se conectar...");
                 Socket conexao = s.accept();
                 Jogador jogador = new Jogador();
                 jogador.setIp(conexao.getRemoteSocketAddress().toString());
                 jogador.setSocket(conexao);
-
+                
                 jogadores.add(jogador);
-
                 System.out.println(" Conectou!: " + conexao.getRemoteSocketAddress());
-
+                
                 Thread t = new Servidor(jogador);
                 t.start();
             }

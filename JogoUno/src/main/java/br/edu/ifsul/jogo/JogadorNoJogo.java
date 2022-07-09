@@ -42,15 +42,13 @@ public class JogadorNoJogo extends Thread {
         terminarExecucao = true;
     }
     
-    // Aqui vai a função Jogada(), que vai verificar se o movimento que o jogador deseja fazer é algo válido;
-    
     public static void main(String[] args) {
         try {
             Socket conexao = new Socket("127.0.0.1", 2222);
             PrintStream saida = new PrintStream(conexao.getOutputStream());
-            //BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in));
+            BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in));
             System.out.println("Bem vindo ao jogo Uno, entre com o seu nome: ");
-            String nomeJogador = JOptionPane.showInputDialog("Informe o seu nome: ");
+            String nomeJogador = teclado.readLine();
             saida.println(nomeJogador);
             
             Thread t = new JogadorNoJogo(conexao);
@@ -58,7 +56,7 @@ public class JogadorNoJogo extends Thread {
             String linha;
             
             while (true) {
-                linha = JOptionPane.showInputDialog("Digite uma mensagem: ");
+                linha = teclado.readLine();
                 
                 if (terminarExecucao) {
                     break;
