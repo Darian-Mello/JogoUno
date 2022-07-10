@@ -11,6 +11,7 @@ import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class Servidor extends Thread {
             
             do {
                 nomeJogador = entrada.readLine();
-            } while (nomeJogador == null);
+            } while (nomeJogador.equals(""));
             jogador.setNome(nomeJogador);
             sendTo(saida, jogador.getNome() + ", aguarde, o jogo já vai começar! ", jogador.getIp());
             
@@ -58,12 +59,10 @@ public class Servidor extends Thread {
                 for (Jogador j : jogadores) {
                     mensagemInicioDoJogo += j.getNome() + "; ";
                 }
-                sendToAll("", mensagemInicioDoJogo);
+                sendToAll(mensagemInicioDoJogo);
+                sendToAll(jogadores.get(0).getNome() + " Esta jogando.");
                 
                 PrintStream saida2 = new PrintStream(jogadores.get(0).getSocket().getOutputStream());
-                Carta c = baralho.getBaralho().get(0);
-                baralho.getBaralho().remove(0);
-                baralho.getLixo().add(c);
                 jogadores.get(0).setSaida(saida2);
                 jogadores.get(0).setVezDeJogar(true);
                 sendTo(saida2, jogadores.get(0).getNome() + ", você é o primeiro a jogar, pressione enter para fazer a sua jogada. ", jogadores.get(0).getIp());
@@ -71,16 +70,28 @@ public class Servidor extends Thread {
 
             while (!jogador.getTerminarConexao()) {
                 entrada.readLine();
-                if (jogoComecou && jogador.getVezDeJogar()) {
-                    String mao = montaMao();
-                    jogada(mao);
-                } else {
+                if (jogoComecou && jogador.getVezDeJogar() && !jogador.getTerminarConexao()) {
+                    jogada();
+                } else if (!jogador.getTerminarConexao()) {
                     if (!jogoComecou) {
                         sendTo(saida, jogador.getNome() + ", aguarde, o jogo ainda não começou ", jogador.getIp());
                     } else if (!jogador.getVezDeJogar()) {
                         sendTo(saida, jogador.getNome() + ", ainda não é a sua vez de jogar ", jogador.getIp());
                     }
                 }
+            }
+            
+            jogadores.remove(indexJogador());
+            if ((jogadores.size()) == 1) {
+                sendToAll(jogadores.get(0).getNome() + " é o vencedor do jogo!");
+                sendToAll("Todos os outros jogadores saíram do jogo.");
+                jogadores.get(0).setTerminarConexao(true);
+            } else {
+                while (jogador.getMao().size() > 0) {
+                    baralho.getBaralho().add(jogador.getMao().get(0));
+                    jogador.getMao().remove(0);
+                }
+                sendToAll(jogador.getNome() + " saiu do jogo!");
             }
             jogadores.remove(saida);
             jogador.getSocket().close();
@@ -89,15 +100,15 @@ public class Servidor extends Thread {
         }
     }
     
-    public void sendToAll(String acao, String texto) throws IOException {
+    public void sendToAll(String texto) throws IOException {
         Iterator<Jogador> iter = jogadores.iterator();
         while (iter.hasNext()) {
             Jogador j = iter.next();
             PrintStream chat = (PrintStream) j.getSaida();
-            chat.println(acao + texto);
+            chat.println(texto);
         }
     }
-    
+
     public void sendTo(PrintStream saida, String texto, String id_client) throws IOException {
 
         Iterator<Jogador> iter = jogadores.iterator();
@@ -109,7 +120,7 @@ public class Servidor extends Thread {
             }
         }
     }
-    
+     
     public String montaMao () {
         String mao = "";
         mao += "0 - Sair\n";
@@ -123,8 +134,8 @@ public class Servidor extends Thread {
         }
         return mao;
     }
-    
-    public void jogada (String mao) {
+     
+    public void jogada () {
         try {
             boolean jogadaValida;
             String escolha;
@@ -134,70 +145,194 @@ public class Servidor extends Thread {
             Carta cartaDaMesa = baralho.getLixo().get(baralho.getLixo().size()-1);
             
             String stringSaida = "É a sua vez de jogar, "
-                    + "a carta que esta na mesa é: " + cartaDaMesa.getDescricao() + "\n Escolha uma das opções:\n" + mao;
+                    + "a carta que esta na mesa é: " + cartaDaMesa.getDescricao() + "\n Escolha uma das opções:\n" + montaMao();
             
             sendTo(jogador.getSaida(), stringSaida, jogador.getIp());
             do {
+                if (!cartaDaMesa.getCorDeCompra().equals("")) {
+                    sendTo(jogador.getSaida(), "Você deve jogar uma carta " + cartaDaMesa.getCorDeCompra(), jogador.getIp());
+                }
+                sendTo(jogador.getSaida(), "Sua escolha: ", jogador.getIp());
                 escolha = entrada.readLine();
+                String mensagemJogadaInvalida = "";
                 jogadaValida = true;
                 
                 if (escolha == null || escolha.trim().equals("")) {
-                    sendTo(jogador.getSaida(), "A jogada efetuada não é valida, por favor informe um valor!", jogador.getIp());
+                    mensagemJogadaInvalida = "A jogada efetuada não é valida, por favor informe um valor!";
                     jogadaValida = false;
                 } else if (!(escolha.matches("[+-]?\\d*(\\.\\d+)?"))) {
-                    sendTo(jogador.getSaida(), "A jogada efetuada não é valida, por favor informe um número!", jogador.getIp());
+                    mensagemJogadaInvalida = "A jogada efetuada não é valida, por favor informe um número!";
                     jogadaValida = false;
                 } else if (Integer.parseInt(escolha) < 0 || Integer.parseInt(escolha) > jogador.getMao().size()+2) {
-                    sendTo(jogador.getSaida(), "A jogada efetuada não é valida, por favor escolha uma das opções acima!", jogador.getIp());
+                    mensagemJogadaInvalida = "A jogada efetuada não é valida, por favor escolha uma das opções acima!";
                     jogadaValida = false;
                 }
                 
                 if (jogadaValida) {
                     opcao = Integer.parseInt(escolha);
                     if (opcao >= 3) {
-                        if (jogador.getMao().get(opcao-3).getNumero() != null) {
-                            if (cartaDaMesa.getNumero() != null && (
-                                !(jogador.getMao().get(opcao-3).getCor().equals(cartaDaMesa.getCor())) || jogador.getMao().get(opcao-3).getNumero() != cartaDaMesa.getNumero())) {
-                                sendTo(jogador.getSaida(), "A jogada efetuada não é valida, a carta jogada deve possuir o mesmo número ou cor da carta da mesa!", jogador.getIp());
-                                jogadaValida = false;
-                            } else if (!cartaDaMesa.getSimbolo().equals("") && jogador.getMao().get(opcao-3).getNumero() != cartaDaMesa.getNumero()) {
-                                sendTo(jogador.getSaida(), "A jogada efetuada não é valida, a carta jogada deve possuir a mesma cor da carta da mesa!", jogador.getIp());
+                        opcao = opcao - 3;
+                        if (!cartaDaMesa.getCor().equals("")) {
+                            if (cartaDaMesa.getNumero() != null) {
+                                if (jogador.getMao().get(opcao).getNumero() != null) {
+                                    if (!(jogador.getMao().get(opcao).getCor().equals(cartaDaMesa.getCor())) && jogador.getMao().get(opcao).getNumero() != cartaDaMesa.getNumero()) {
+                                        mensagemJogadaInvalida = "A jogada efetuada não é valida, a carta jogada deve possuir o mesmo número ou cor da carta da mesa!";
+                                        jogadaValida = false;
+                                    }
+                                } else if (!jogador.getMao().get(opcao).getCor().equals("") && !(jogador.getMao().get(opcao).getCor().equals(cartaDaMesa.getCor()))) {
+                                    mensagemJogadaInvalida = "A jogada efetuada não é valida, a carta jogada deve possuir a mesma cor da carta da mesa!";
+                                    jogadaValida = false;
+                                }
+                            } else if (!jogador.getMao().get(opcao).getCor().equals("") && !(jogador.getMao().get(opcao).getCor().equals(cartaDaMesa.getCor()))) {
+                                mensagemJogadaInvalida = "A jogada efetuada não é valida, a carta jogada deve possuir a mesma cor da carta da mesa!";
                                 jogadaValida = false;
                             }
+                        } else if (cartaDaMesa.getSimbolo().equals("MudaCor") && !(jogador.getMao().get(opcao).getCor().equals(cartaDaMesa.getCorDeCompra()))) {
+                            mensagemJogadaInvalida = "A jogada efetuada não é valida, a carta jogada deve possuir a cor solicitada!";
+                            jogadaValida = false;
                         }
                     }
                 }
                 
-            } while (!jogadaValida);
-            
-            Carta c = jogador.getMao().get(opcao-3);
-            jogador.getMao().remove(opcao-3);
-            baralho.getLixo().add(c);
-            
-            int index = 0;
-            for (Jogador j : jogadores) {
-                if (j.getIp().equals(jogador.getIp())) {
-                    jogador.setVezDeJogar(false);
+                if (!jogadaValida) {
+                    sendTo(jogador.getSaida(), mensagemJogadaInvalida, jogador.getIp());
+                } else if (escolha.equals("1")) {
+                    sendTo(jogador.getSaida(), "Você comprou uma carta, sua mão é:\n" + montaMao(), jogador.getIp());
+                    jogadaValida = false;
+                } else if (jogador.getMao().size() == 1 && !escolha.equals("2")) {
+                    comprar();
+                    comprar();
+                    sendTo(jogador.getSaida(), "Você tinha apenas uma carta e não falou \"Uno\", por isso comprou mais duas cartas. Sua mão é:\n" + montaMao(), jogador.getIp());
+                    jogadaValida = false;
+                } else if (jogador.getMao().size() != 1 && escolha.equals("2")) {
+                    comprar();
+                    comprar();
+                    sendTo(jogador.getSaida(), "Você só deve falar \"Uno\" quando tiver apenas uma carta, por isso comprou mais duas cartas. Sua mão é:\n" + montaMao(), jogador.getIp());
+                    jogadaValida = false;
+                } else if (jogador.getMao().size() == 1 && escolha.equals("2")) {
+                    sendTo(jogador.getSaida(), "Você disse \"Uno\" na hora certa, muito bem.", jogador.getIp());
+                } else if (escolha.equals("0")) {
+                    jogador.setTerminarConexao(true);
+                    int index = indexJogador();
                     index++;
-                    if (index == jogadores.size()) {
+                    if (index >= jogadores.size()) {
                         index = 0;
                     }
                     jogadores.get(index).setVezDeJogar(true);
-                    PrintStream saida = new PrintStream(jogadores.get(index).getSocket().getOutputStream());
-                    sendTo(saida, jogadores.get(index).getNome() + ", é a sua vez, pressione enter para fazer a sua jogada: ", jogadores.get(index).getIp());
-                    break;
+                    return;
                 }
-                index++;
+            } while (!jogadaValida);
+            
+            efetuarJogada(opcao);
+            if (!cartaDaMesa.getCorDeCompra().equals("")) {
+                baralho.getLixo().get(baralho.getLixo().size()-1).setCorDeCompra("");
             }
-          
+            
         } catch (IOException e) {
             System.out.println("IOException: " + e);
         }
     }
     
+    public void comprar () {
+        Carta c = baralho.getBaralho().get(0);
+        baralho.getBaralho().remove(0);
+        jogador.getMao().add(c);
+    }
+    
+    public void efetuarJogada (int opcao) throws IOException {
+        int indexComprador = 0;
+        for (Jogador j : jogadores) {
+            if (j.getIp().equals(jogador.getIp())) {
+                indexComprador++;
+                break;
+            }
+            indexComprador++;
+        }
+        if (indexComprador >= jogadores.size()) {
+            indexComprador = 0;
+        }
+        
+        if (jogador.getMao().get(opcao).getSimbolo().equals("Inverte")) {
+            Collections.reverse(jogadores);
+        } else if (jogador.getMao().get(opcao).getSimbolo().equals("Compra2")) {
+            for (int i = 0; i < 2; i++) {
+                Carta ca = new Carta();
+                ca = baralho.getBaralho().get(0);  
+                baralho.getBaralho().remove(0);
+                jogadores.get(indexComprador).getMao().add(ca);
+            }
+        } else if (jogador.getMao().get(opcao).getSimbolo().equals("Compra4")) {
+            for (int i = 0; i < 4; i++) {
+                Carta ca = new Carta();
+                ca = baralho.getBaralho().get(0);
+                baralho.getBaralho().remove(0);
+                jogadores.get(indexComprador).getMao().add(ca);
+            }
+        } else if (jogador.getMao().get(opcao).getSimbolo().equals("MudaCor")) {
+            BufferedReader entrada = new BufferedReader(new InputStreamReader(jogador.getSocket().getInputStream()));
+            String cor = "0";
+            String pergunta = "Selecione uma cor:\n"
+                    + "1 - Amarelo\n"
+                    + "2 - Azul\n"
+                    + "3 - Verde\n"
+                    + "4 - Vermelho\n"
+                    + "Sua escolha: ";
+            while (!cor.equals("1") && !cor.equals("2") && !cor.equals("3") && !cor.equals("4")) {
+                sendTo(jogador.getSaida(), pergunta, jogador.getIp());
+                cor = entrada.readLine();
+            }
+            if (cor.equals("1")) {
+                jogador.getMao().get(opcao).setCorDeCompra("Amarelo");
+            } else if (cor.equals("2")) {
+                jogador.getMao().get(opcao).setCorDeCompra("Azul");
+            } else if (cor.equals("3")) {
+                jogador.getMao().get(opcao).setCorDeCompra("Verde");  
+            } else if (cor.equals("4")) {
+                jogador.getMao().get(opcao).setCorDeCompra("Vermelho");
+            }
+        }
+
+        int index = indexJogador();
+        PrintStream saida = new PrintStream(jogadores.get(index).getSocket().getOutputStream());
+        sendTo(saida, "Sua jogada foi efetuada com sucesso. ", jogadores.get(index).getIp());
+        jogadores.get(index).setVezDeJogar(false);
+
+        index++;
+        if (index >= jogadores.size()) {
+            index = 0;
+        }
+        if (jogador.getMao().get(opcao).getSimbolo().equals("Bloqueio")) {
+            index++;
+        }
+        if (index >= jogadores.size()) {
+            index = 0;
+        }
+
+        Carta c = jogador.getMao().get(opcao);
+        jogador.getMao().remove(opcao);
+        baralho.getLixo().add(c);
+
+        jogadores.get(index).setVezDeJogar(true);
+        saida = new PrintStream(jogadores.get(index).getSocket().getOutputStream());
+        sendToAll(jogadores.get(index).getNome() + " Esta jogando.");
+        sendTo(saida, "Pressione enter para fazer a sua jogada: ", jogadores.get(index).getIp());
+    }
+    
+    public int indexJogador () {
+        int index = 0; 
+        for (Jogador j : jogadores) {
+            if (j.getIp().equals(jogador.getIp())) {
+                break;
+            }
+            index++;
+        }
+        return index;
+    }
+    
     public static void darCartas () {
         Iterator<Jogador> iter = jogadores.iterator();
         baralho.embaralhar();
+        boolean selecionadaCartaInicio = false;
         while (iter.hasNext()) {
             Jogador j = iter.next();
             for (int i = 0; i < 7; i++) {
@@ -205,6 +340,18 @@ public class Servidor extends Thread {
                 c = baralho.getBaralho().get(0);
                 baralho.getBaralho().remove(0);
                 j.getMao().add(c);
+            }
+        }
+        while (!selecionadaCartaInicio) {
+            Carta c = baralho.getBaralho().get(0);
+            baralho.getBaralho().remove(0);
+            baralho.getLixo().add(c); 
+            
+            if (c.getNumero() != null) {
+                selecionadaCartaInicio = true;
+            } else {
+                baralho.getBaralho().add(baralho.getLixo().get(0));
+                baralho.getLixo().remove(0);
             }
         }
     }

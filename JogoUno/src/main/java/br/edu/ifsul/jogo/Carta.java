@@ -14,14 +14,14 @@ public class Carta implements Serializable {
     private Integer numero;
     private String simbolo;
     private String cor;
-    private Integer totalCompra;
     private String descricao;
+    private String corDeCompra;
     
     public Carta () {
         numero = null;
         simbolo = "";
         cor = "";
-        totalCompra = 0;
+        corDeCompra = "";
     }
 
     public Integer getNumero() {
@@ -47,14 +47,6 @@ public class Carta implements Serializable {
     public void setCor(String cor) {
         this.cor = cor;
     }
-
-    public Integer getTotalCompra() {
-        return totalCompra;
-    }
-
-    public void setTotalCompra(Integer totalCompra) {
-        this.totalCompra = totalCompra;
-    }
     
     public String getDescricao() {
         return descricao;
@@ -62,5 +54,13 @@ public class Carta implements Serializable {
 
     public void setDescricao(String descricao) {
         this.descricao = descricao;
+    }
+
+    public String getCorDeCompra() {
+        return corDeCompra;
+    }
+
+    public void setCorDeCompra(String corDeCompra) {
+        this.corDeCompra = corDeCompra;
     }
 }

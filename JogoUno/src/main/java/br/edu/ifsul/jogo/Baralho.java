@@ -29,7 +29,6 @@ public class Baralho implements Serializable {
             // Gera as cartas de compra +2
             Carta c = new Carta();
             c.setSimbolo("Compra4");
-            c.setTotalCompra(4);
             c.setDescricao(" mais 4 ");
             baralho.add(c);
             
@@ -74,7 +73,6 @@ public class Baralho implements Serializable {
                 c = new Carta();
                 c.setSimbolo("Compra2");
                 c.setCor(cor);
-                c.setTotalCompra(2);
                 c.setDescricao(" Mais 2 " + cor + " ");
                 baralho.add(c);
             }
