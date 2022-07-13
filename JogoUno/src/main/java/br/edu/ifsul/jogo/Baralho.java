@@ -83,6 +83,14 @@ public class Baralho implements Serializable {
         Collections.shuffle(baralho);
     }
     
+    public void resetarBaralho () {
+        while (lixo.size() > 1) {
+            baralho.add(lixo.get(0));
+            lixo.remove(0);
+        }
+        embaralhar();
+    }
+    
     public ArrayList<Carta> getBaralho() {
         return baralho;
     }

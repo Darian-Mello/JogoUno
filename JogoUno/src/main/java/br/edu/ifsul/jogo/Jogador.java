@@ -19,14 +19,19 @@ public class Jogador implements Serializable {
     private Socket socket;
     private PrintStream saida;
     private ArrayList<Carta> mao;
-    private Boolean falouUno;
     private Boolean vezDeJogar;
     private boolean terminarConexao;
+    private boolean host;
+    private boolean falouUno;
+    private boolean comprouUmaCarta;
 
     public Jogador () {
         this.setVezDeJogar(false);
         this.mao = new ArrayList<>();
         this.terminarConexao = false;
+        this.host = false;
+        this.falouUno = false;
+        this.comprouUmaCarta = false;
     }
     
     public String getNome() {
@@ -69,14 +74,6 @@ public class Jogador implements Serializable {
         this.mao = mao;
     }
 
-    public Boolean getFalouUno() {
-        return falouUno;
-    }
-
-    public void setFalouUno(Boolean falouUno) {
-        this.falouUno = falouUno;
-    }
-
     public Boolean getVezDeJogar() {
         return vezDeJogar;
     }
@@ -92,4 +89,30 @@ public class Jogador implements Serializable {
     public void setTerminarConexao(boolean terminarConexao) {
         this.terminarConexao = terminarConexao;
     }
+
+    public boolean getHost() {
+        return host;
+    }
+
+    public void setHost(boolean host) {
+        this.host = host;
+    }
+
+    public boolean getFalouUno() {
+        return falouUno;
+    }
+
+    public void setFalouUno(boolean falouUno) {
+        this.falouUno = falouUno;
+    }
+
+    public boolean getComprouUmaCarta() {
+        return comprouUmaCarta;
+    }
+
+    public void setComprouUmaCarta(boolean comprouUmaCarta) {
+        this.comprouUmaCarta = comprouUmaCarta;
+    }
+
+    
 }
