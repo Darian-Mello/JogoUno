@@ -4,6 +4,7 @@
  */
 package br.edu.ifsul.jogo;
 
+import br.edu.ifsul.banco.BancoTxt;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -42,7 +43,7 @@ public class Servidor extends Thread {
             
             do {
                 nomeJogador = entrada.readLine();
-            } while (nomeJogador.equals(""));
+            } while (nomeJogador.trim().equals(""));
             jogador.setNome(nomeJogador);
             
             if (jogador.getHost()) {
@@ -59,6 +60,7 @@ public class Servidor extends Thread {
             if (jogadores.size() != 0 && jogadores.size() == totalJogadores && jogoPodecomecar) {
                 jogoComecou = true;
                 darCartas();
+                salvarJogadores();
             }
                             
             if (jogoComecou) {
@@ -169,9 +171,9 @@ public class Servidor extends Thread {
             sendTo(jogador.getSaida(), stringSaida, jogador.getIp());
             do {
                 if (!cartaDaMesa.getCorDeCompra().equals("")) {
-                    sendTo(jogador.getSaida(), "Você deve jogar uma carta " + cartaDaMesa.getCorDeCompra(), jogador.getIp());
+                    sendTo(jogador.getSaida(), "Você deve jogar uma carta da seguinte cor: " + cartaDaMesa.getCorDeCompra(), jogador.getIp());
                 }
-                sendTo(jogador.getSaida(), "A carta que esta na mesa é: " + cartaDaMesa.getDescricao() + ", sua escolha: ", jogador.getIp());
+                sendTo(jogador.getSaida(), "A carta que esta na mesa é: " + cartaDaMesa.getDescricao() + "\nSua escolha: ", jogador.getIp());
                 escolha = entrada.readLine();
                 String mensagemJogadaInvalida = "";
                 jogadaValida = true;
@@ -198,11 +200,13 @@ public class Servidor extends Thread {
                                         mensagemJogadaInvalida = "A jogada efetuada não é valida, a carta jogada deve possuir o mesmo número ou cor da carta da mesa!";
                                         jogadaValida = false;
                                     }
-                                } else if (!jogador.getMao().get(opcao).getCor().equals("") && !(jogador.getMao().get(opcao).getCor().equals(cartaDaMesa.getCor()))) {
+                                } else if (!jogador.getMao().get(opcao).getCor().equals("") && !(jogador.getMao().get(opcao).getCor().equals(cartaDaMesa.getCor())) && 
+                                        !jogador.getMao().get(opcao).getSimbolo().equals(cartaDaMesa.getSimbolo())) {
                                     mensagemJogadaInvalida = "A jogada efetuada não é valida, a carta jogada deve possuir a mesma cor da carta da mesa!";
                                     jogadaValida = false;
                                 }
-                            } else if (!jogador.getMao().get(opcao).getCor().equals("") && !(jogador.getMao().get(opcao).getCor().equals(cartaDaMesa.getCor()))) {
+                            } else if (!jogador.getMao().get(opcao).getCor().equals("") && !(jogador.getMao().get(opcao).getCor().equals(cartaDaMesa.getCor())) &&
+                                    !jogador.getMao().get(opcao).getSimbolo().equals(cartaDaMesa.getSimbolo())) {
                                 mensagemJogadaInvalida = "A jogada efetuada não é valida, a carta jogada deve possuir a mesma cor da carta da mesa!";
                                 jogadaValida = false;
                             }
@@ -265,6 +269,7 @@ public class Servidor extends Thread {
             
             efetuarJogada(opcao);
             jogador.setFalouUno(false);
+            jogador.setComprouUmaCarta(false);
            
             if (!cartaDaMesa.getCorDeCompra().equals("")) {
                 baralho.getLixo().get(baralho.getLixo().size()-1).setCorDeCompra("");
@@ -392,8 +397,11 @@ public class Servidor extends Thread {
         baralho.getLixo().add(c);
 
         jogadores.get(index).setVezDeJogar(true);
-        sendToAll(jogadores.get(index).getNome() + " Esta jogando.");
-        sendTo(jogadores.get(index).getSaida(), "Pressione enter para fazer a sua jogada: ", jogadores.get(index).getIp());
+        
+        if (jogador.getMao().size() > 0) {
+            sendToAll(jogadores.get(index).getNome() + " Esta jogando.");
+            sendTo(jogadores.get(index).getSaida(), "Pressione enter para fazer a sua jogada: ", jogadores.get(index).getIp());
+        }
     }
     
     public int indexJogador () {
@@ -431,6 +439,12 @@ public class Servidor extends Thread {
                 baralho.getBaralho().add(baralho.getLixo().get(0));
                 baralho.getLixo().remove(0);
             }
+        }
+    }
+    
+    public static void salvarJogadores () {
+        for (Jogador j : jogadores) {
+            BancoTxt.incluirNovoPlayer(j.getNome());
         }
     }
     

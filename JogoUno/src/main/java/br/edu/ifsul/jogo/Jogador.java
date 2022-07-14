@@ -24,6 +24,9 @@ public class Jogador implements Serializable {
     private boolean host;
     private boolean falouUno;
     private boolean comprouUmaCarta;
+    private Integer vitorias;
+    private Integer derrotas;
+    private Integer pontuacao;
 
     public Jogador () {
         this.setVezDeJogar(false);
@@ -32,6 +35,9 @@ public class Jogador implements Serializable {
         this.host = false;
         this.falouUno = false;
         this.comprouUmaCarta = false;
+        this.vitorias = 0;
+        this.derrotas = 0;
+        this.pontuacao = 0;
     }
     
     public String getNome() {
@@ -112,6 +118,30 @@ public class Jogador implements Serializable {
 
     public void setComprouUmaCarta(boolean comprouUmaCarta) {
         this.comprouUmaCarta = comprouUmaCarta;
+    }
+
+    public Integer getVitorias() {
+        return vitorias;
+    }
+
+    public void setVitorias(Integer vitorias) {
+        this.vitorias = vitorias;
+    }
+
+    public Integer getDerrotas() {
+        return derrotas;
+    }
+
+    public void setDerrotas(Integer derrotas) {
+        this.derrotas = derrotas;
+    }
+
+    public Integer getPontuacao() {
+        return pontuacao;
+    }
+
+    public void setPontuacao(Integer pontuacao) {
+        this.pontuacao = pontuacao;
     }
 
     
