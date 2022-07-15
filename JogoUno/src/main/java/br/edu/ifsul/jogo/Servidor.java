@@ -18,6 +18,8 @@ import java.util.List;
 
 /**
  *
+ * A classe servidor é responsável por rodar o jogo, controlando todas as suas ações e validando todas as ações dos jogadores
+ * 
  * @author Dariãn
  */
 public class Servidor extends Thread {
@@ -34,6 +36,13 @@ public class Servidor extends Thread {
         jogador = j;
     }
     
+    /**
+    * O método "run" é a thread que vai fazer os tratamentos necessários
+    * para cada jogador, chamando as funções que vão escutar e se comuncar com ele
+    *
+    * @authors Dariãn & Elias
+    * @since 1.0
+    */ 
     public void run() {
         try {
             BufferedReader entrada = new BufferedReader(new InputStreamReader(jogador.getSocket().getInputStream()));
@@ -87,9 +96,16 @@ public class Servidor extends Thread {
                 sendTo(saida2, jogadores.get(0).getNome() + ", você é o primeiro a jogar, pressione enter para fazer a sua jogada. ", jogadores.get(0).getIp());
             }
 
+            String aux = "";
             while (!jogador.getTerminarConexao() && !partidaAcabou) {
-                entrada.readLine();
-                if (jogoComecou && jogador.getVezDeJogar() && !jogador.getTerminarConexao() && !partidaAcabou) {
+                aux = entrada.readLine().trim();
+                if (aux.toUpperCase().equals("SAIR") && !jogoComecou) {
+                    sendTo(saida, jogador.getNome() + ", aguarde o jogo iniciar para sair.", jogador.getIp());
+                } else if (aux.toUpperCase().equals("SAIR")) {
+                    break;
+                }
+                
+                if (jogoComecou && jogador.getVezDeJogar() && !jogador.getTerminarConexao()) {
                     jogada();
                 } else if (!jogador.getTerminarConexao() && !partidaAcabou) {
                     if (!jogoComecou) {
@@ -107,6 +123,13 @@ public class Servidor extends Thread {
         }
     }
     
+    /**
+    * A função "defineTotalJogares" é chamada para que o host(primeiro jogador a se conectrar)
+    * possa definir o total d jogadores que irão jogar
+    *
+    * @authors Dariãn & Elias
+    * @since 1.0
+    */ 
     public void defineTotalJogares () throws IOException {
         BufferedReader entrada = new BufferedReader(new InputStreamReader(jogador.getSocket().getInputStream()));
         PrintStream saida = new PrintStream(jogador.getSocket().getOutputStream());
@@ -128,6 +151,13 @@ public class Servidor extends Thread {
         } while (totalJogadores < 2 || totalJogadores > 5);
     }
     
+    /**
+    * A função "sendToAll" envia uma mensagem para todos os jogadores da lista de jogadores
+    *
+    * @authors Dariãn & Elias
+    * @param texto mensagem que será enviada
+    * @since 1.0
+    */ 
     public void sendToAll(String texto) throws IOException {
         Iterator<Jogador> iter = jogadores.iterator();
         while (iter.hasNext()) {
@@ -137,6 +167,15 @@ public class Servidor extends Thread {
         }
     }
 
+    /**
+    * A função "sendTo" envia uma mensagem para um jogador da lista de jogadores
+    *
+    * @authors Dariãn & Elias
+    * @param saida é o PrintStream do joagdor que receberá a mensagem.
+    * @param texto mensagem que será enviada
+    * @param id_client id do cliente que vai receber a mensagem
+    * @since 1.0
+    */ 
     public void sendTo(PrintStream saida, String texto, String id_client) throws IOException {
 
         Iterator<Jogador> iter = jogadores.iterator();
@@ -148,7 +187,13 @@ public class Servidor extends Thread {
             }
         }
     }
-     
+    
+    /**
+    * A função "montaMao" verifica as cartas que o jogador possui
+    * @authors Dariãn & Elias
+    * @return Retorna uma sring com as cartas que o jogador possui na mão
+    * @since 1.0
+    */
     public String montaMao () {
         String mao = "";
         mao += "0 - Sair\n";
@@ -162,7 +207,14 @@ public class Servidor extends Thread {
         }
         return mao;
     }
-     
+    
+    /**
+    * A função "jogada" mostra a mão para o jogador, e pede para ele fazer um movimento,
+    * depois verifica se o movimento escolhido é válido.
+    *
+    * @authors Dariãn & Elias
+    * @since 1.0
+    */
     public void jogada () {
         try {
             boolean jogadaValida;
@@ -294,6 +346,12 @@ public class Servidor extends Thread {
         }
     }
     
+    /**
+     * A função "finalizarPartida" finaliza a partida, quando um jogador vencer(ficar com 0 cartas).
+     *
+     * @authors Dariãn & Elias
+     * @since 1.0
+     */
     public void finalizarPartida () throws IOException {
         partidaAcabou = true;
         sendToAll(jogador.getNome() + " Venceu o jogo!");
@@ -312,6 +370,12 @@ public class Servidor extends Thread {
         }
     }
     
+    /**
+     * A função "finalizarPartidaSaidaJogador" é chamada quando um jogador pede para sair do jogo, e finaliza a partida caso seja necessário.
+     *
+     * @authors Dariãn & Elias
+     * @since 1.0
+     */
     public void finalizarPartidaSaidaJogador () throws IOException {
         jogadores.remove(indexJogador());
         
@@ -344,12 +408,25 @@ public class Servidor extends Thread {
         jogador.getSocket().close();
     }
     
+    /**
+     * A função "comprar" retira uma carta do baralho, e a adiciona a mão do jogador.
+     *
+     * @authors Dariãn & Elias
+     * @since 1.0
+     */
     public void comprar () {
         Carta c = baralho.getBaralho().get(0);
         baralho.getBaralho().remove(0);
         jogador.getMao().add(c);
     }
     
+    /**
+     * A função "efetuarJogada" finalizar o movimento escolhido pelo jogador, retirando uma carta da sua mão e adicionando ela ao lixo.
+     *
+     * @authors Dariãn & Elias
+     * @param opcao é a opção escolhida pelo jogador
+     * @since 1.0
+     */
     public void efetuarJogada (int opcao) throws IOException {
         if (jogador.getMao().get(opcao).getSimbolo().equals("Inverte")) {
             Collections.reverse(jogadores);
@@ -430,6 +507,13 @@ public class Servidor extends Thread {
         }
     }
     
+    /**
+     * A função "indexJogador" retorna o index do jogador atual dentro da lista de jogadores
+     *
+     * @authors Dariãn & Elias
+     * @return retorna o index do jogador atual dentro da lista de jogadores
+     * @since 1.0
+     */
     public int indexJogador () {
         int index = 0; 
         for (Jogador j : jogadores) {
@@ -441,13 +525,19 @@ public class Servidor extends Thread {
         return index;
     }
     
+    /**
+     * A função "darCartas" é utilizada para dar 7 cartas para cada jogador, retirando elas do baralho.
+     *
+     * @authors Dariãn & Elias
+     * @since 1.0
+     */
     public static void darCartas () {
         Iterator<Jogador> iter = jogadores.iterator();
         baralho.embaralhar();
         boolean selecionadaCartaInicio = false;
         while (iter.hasNext()) {
             Jogador j = iter.next();
-            for (int i = 0; i < 1; i++) {
+            for (int i = 0; i < 7; i++) {
                 Carta c = new Carta();
                 c = baralho.getBaralho().get(0);
                 baralho.getBaralho().remove(0);
@@ -468,12 +558,28 @@ public class Servidor extends Thread {
         }
     }
     
+    /**
+     * A função "salvarJogadores" guarda todos os jogadores em um arquivo texto.
+     *
+     * @authors Dariãn & Elias
+     * @param Caminho utilizado para chegar no arquivo.
+     * @param Texto que será escrito no arquivo.
+     * @return Retorna se foi possível escrever no arquivo.
+     * @since 1.0
+     */
     public static void salvarJogadores () {
         for (Jogador j : jogadores) {
             BancoTxt.incluirNovoPlayer(j.getNome());
         }
     }
     
+    /**
+     * A função "main" é utilizada para dar início a execução do servidor, para tanto,
+     * escuta a porta de execução e conecta os jogadores.
+     *
+     * @authors Dariãn & Elias
+     * @since 1.0
+     */
     public static void main(String args[]) {
         jogadores = new ArrayList<Jogador>();
         try {

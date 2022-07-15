@@ -7,7 +7,9 @@ package br.edu.ifsul.jogo;
 import java.io.Serializable;
 
 /**
- *
+ * Define os objetos que simulam as cartas que são usadas no jogo Uno
+ * guardando valor, cor, etc.
+ * 
  * @author Dariãn
  */
 public class Carta implements Serializable {

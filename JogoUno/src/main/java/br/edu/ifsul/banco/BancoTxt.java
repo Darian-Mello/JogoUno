@@ -10,11 +10,21 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+
 /**
- *
- * @author Elias Dalvite
+ * Realiza alterações no arquivo txt de armazenamento do ranking
+ * 
+ * @author Darian & Elias
  */
 public class BancoTxt {
+    
+    /**
+     * A função "incluirNovoPlayer" armazena um jogador no banco caso ele não esteja cadastrado.
+     *
+     * @authors Dariãn & Elias
+     * @param nomeJogador é o um nome definido pelo usuário
+     * @since 1.0
+     */
     public static void incluirNovoPlayer(String nomeJogador){
         String conteudo = "";
         String[] dados;
@@ -25,9 +35,9 @@ public class BancoTxt {
             String linha = "";
             String print;
             try {
-                while(linha!=null){
+                while (linha != null) {
                     linha = lerArq.readLine();
-                    if(linha!=null){
+                    if(linha!=null && !linha.equals("")){
                         dados = linha.split(";");
                         
                         if(dados[0].equals(nomeJogador))
@@ -56,6 +66,13 @@ public class BancoTxt {
         }
     }
     
+    /**
+    * A função "aumentaVitorias" aumenta o número de vitórias do jogador no banco.
+    *
+    * @authors Dariãn & Elias
+    * @param nomeJogador é o um nome definido pelo usuário
+    * @since 1.0
+    */
     public static void aumentaVitorias(String nomeJogador){
         String conteudo = "";
         String[] dados;
@@ -68,7 +85,7 @@ public class BancoTxt {
             try {
                 while(linha!=null){
                     linha = lerArq.readLine();
-                    if(linha!=null){                    
+                    if(linha!=null && !linha.equals("")){                    
                         dados = linha.split(";");                      
                         //compara com o nome do cara passado por parametro
                         if(dados[0].equals(nomeJogador)){
@@ -96,6 +113,13 @@ public class BancoTxt {
         }   
     }
     
+    /**
+    * A função "aumentaVitorias" aumenta o número de derrotas do jogador no banco.
+    *
+    * @authors Dariãn & Elias
+    * @param nomeJogador é o um nome definido pelo usuário
+    * @since 1.0
+    */
     public static void aumentaDerrotas(String nomeJogador){
         String conteudo = "";
         String[] dados;
@@ -108,7 +132,7 @@ public class BancoTxt {
             try {
                 while(linha!=null){
                     linha = lerArq.readLine();
-                    if(linha!=null){
+                    if(linha!=null && !linha.equals("")){
                     
                         dados = linha.split(";");                     
 
@@ -133,6 +157,13 @@ public class BancoTxt {
         }   
     }
     
+    /**
+    * A função "rankingJogadores" é usada para buscar a pontuação de todos os jogadores salvos no banco
+    *
+    * @authors Dariãn & Elias
+    * @return retorna uma string com a pontuação dos jogadores.
+    * @since 1.0
+    */
     public static String rankingJogadores() {
         String conteudo = "";
         String[] dados;

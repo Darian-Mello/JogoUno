@@ -10,7 +10,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 /**
- *
+ * Armazena os dados dos usuários que irão participar do jogo
+ * 
  * @author Dariãn
  */
 public class Jogador implements Serializable {

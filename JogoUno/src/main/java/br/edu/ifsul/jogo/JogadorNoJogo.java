@@ -12,8 +12,9 @@ import java.net.Socket;
 import javax.swing.JOptionPane;
 
 /**
- *
- * @author Dariãn
+ * Conecta o cliente ao servidor
+ * 
+ * @author Darian & Elias
  */
 public class JogadorNoJogo extends Thread {
     private static boolean terminarExecucao = false;
@@ -23,6 +24,11 @@ public class JogadorNoJogo extends Thread {
         conexao = s;
     }
     
+    /**
+    * Informando as ações do jogo para o jogador em questão.
+    * @authors Dariãn & Elias
+    * @since 1.0
+    */ 
     public void run () {
         try {
             BufferedReader entrada = new BufferedReader(new InputStreamReader(conexao.getInputStream()));
@@ -42,6 +48,11 @@ public class JogadorNoJogo extends Thread {
         terminarExecucao = true;
     }
     
+    /**
+    * Solicita uma conexão ao servidor, fica escutando o que o usuário digita
+    * @authors Dariãn & Elias
+    * @since 1.0
+    */ 
     public static void main(String[] args) {
         try {
             Socket conexao = new Socket("127.0.0.1", 2222);

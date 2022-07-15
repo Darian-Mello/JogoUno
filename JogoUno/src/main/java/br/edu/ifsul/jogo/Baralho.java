@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 /**
- *
+ * Guarda as cartas existentes no baralho e gera o lixo.
+ * 
  * @author Dariãn
  */
 public class Baralho implements Serializable {
@@ -21,6 +22,12 @@ public class Baralho implements Serializable {
         lixo = new ArrayList<>();
     }
     
+    /**
+    * A função "geraBaralho" monta todas as cartas existentes do jogo Uno, e as adiciona ao baralho.
+    *
+    * @authors Dariãn & Elias
+    * @since 1.0
+    */ 
     public void geraBaralho () {
         String cores[] = {"Amarelo", "Azul", "Verde", "Vermelho"};
         baralho = new ArrayList<>();

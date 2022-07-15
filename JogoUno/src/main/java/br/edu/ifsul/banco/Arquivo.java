@@ -13,13 +13,23 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
-  * @author Elias Dalvite
+ * Realiza as operações de leitura e escrita no banco 
+ *
+ * @author Darian & Elias
  */
 public class Arquivo {
-    public static String Read(String Caminho){
+    /**
+     * A função "Read" é utilizada para percorrer o arquivo texto utilizado como banco de dados.
+     *
+     * @authors Dariãn & Elias
+     * @param caminho utilizado para chegar no arquivo.
+     * @return Retorna uma String com todos os dados dentro do arquivo.
+     * @since 1.0
+     */
+    public static String Read(String caminho){
         String conteudo = "";
         try {
-            FileReader arq = new FileReader(Caminho);
+            FileReader arq = new FileReader(caminho);
             BufferedReader lerArq = new BufferedReader(arq);
             String linha="";
             try {
@@ -40,11 +50,20 @@ public class Arquivo {
         }
     }
     
-    public static boolean Write(String Caminho,String Texto){
+    /**
+     * A função "Write" é utilizada para esrever uma String no arquivo texto.
+     *
+     * @authors Dariãn & Elias
+     * @param caminho utilizado para chegar no arquivo.
+     * @param texto que será escrito no arquivo.
+     * @return Retorna se foi possível escrever no arquivo.
+     * @since 1.0
+     */
+    public static boolean Write(String caminho,String texto){
         try {
-            FileWriter arq = new FileWriter(Caminho);
+            FileWriter arq = new FileWriter(caminho);
             PrintWriter gravarArq = new PrintWriter(arq);
-            gravarArq.println(Texto);
+            gravarArq.println(texto);
             gravarArq.close();
             return true;
         }catch(IOException e){
