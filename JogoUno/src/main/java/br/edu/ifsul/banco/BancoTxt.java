@@ -69,21 +69,21 @@ public class BancoTxt {
                 while(linha!=null){
                     linha = lerArq.readLine();
                     if(linha!=null){                    
-                    dados = linha.split(";");                      
-                    //compara com o nome do cara passado por parametro
-                    if(dados[0].equals(nomeJogador)){
-                        muda = Integer.parseInt(dados[1]);//pega o dado
-                        muda++;//aumenta uma vitoria
-                        dados[1] = muda.toString();//devolve pro dado
-                        muda = Integer.parseInt(dados[3]);//mesma coisa com pontuacao (adicionei 10 cada vitoria)
-                        muda+=10;
-                        dados[3] = muda.toString();
-                        
-                        linha = dados[0]+";"+dados[1]+";"+dados[2]+";"+dados[3]+";";
-                            //coloca os dados novos na linha 
-                            //pra depois guardar na variavel conteudo
-                    }
-                    conteudo += linha+"\n";
+                        dados = linha.split(";");                      
+                        //compara com o nome do cara passado por parametro
+                        if(dados[0].equals(nomeJogador)){
+                            muda = Integer.parseInt(dados[1]);//pega o dado
+                            muda++;//aumenta uma vitoria
+                            dados[1] = muda.toString();//devolve pro dado
+                            muda = Integer.parseInt(dados[3]);//mesma coisa com pontuacao (adicionei 10 cada vitoria)
+                            muda+=10;
+                            dados[3] = muda.toString();
+
+                            linha = dados[0]+";"+dados[1]+";"+dados[2]+";"+dados[3]+";";
+                                //coloca os dados novos na linha 
+                                //pra depois guardar na variavel conteudo
+                        }
+                        conteudo += linha+"\n";
                     }
                 }
                 Arquivo.Write("banco.txt", conteudo); //escreve todos os dados dnv, com os dados atualizados
@@ -110,21 +110,20 @@ public class BancoTxt {
                     linha = lerArq.readLine();
                     if(linha!=null){
                     
-                    dados = linha.split(";");                     
-                    
-                    if(dados[0].equals(nomeJogador)){
-                        
-                        muda = Integer.parseInt(dados[2]);
-                        muda++;
-                        dados[2] = muda.toString();
-                        
-                        linha = dados[0]+";"+dados[1]+";"+dados[2]+";"+dados[3]+";";
-                    }
-                    conteudo += linha+"\n";
+                        dados = linha.split(";");                     
+
+                        if(dados[0].equals(nomeJogador)){
+
+                            muda = Integer.parseInt(dados[2]);
+                            muda++;
+                            dados[2] = muda.toString();
+
+                            linha = dados[0]+";"+dados[1]+";"+dados[2]+";"+dados[3]+";";
+                        }
+                        conteudo += linha+"\n";
                     }
                 }
                 Arquivo.Write("banco.txt", conteudo);
-                System.out.println(conteudo);
                 arq.close();
             } catch (IOException ex) {
                 System.out.println("Erro: Não foi possível ler o arquivo!");
@@ -132,6 +131,35 @@ public class BancoTxt {
         } catch (FileNotFoundException ex) {
             System.out.println("Erro: Arquivo não encontrado!");
         }   
+    }
+    
+    public static String rankingJogadores() {
+        String conteudo = "";
+        String[] dados;
+        String aux;
+        try {
+            FileReader arq = new FileReader("banco.txt");
+            BufferedReader lerArq = new BufferedReader(arq);
+            String linha = "";
+            try {
+                while (linha != null) {
+                    linha = lerArq.readLine();
+                    if (linha != null && !linha.equals("")) {
+                        dados = linha.split(";");
+                        
+                        aux = "Nome: " + dados[0] + ".\tVitorias: " + dados[1] + ".\tDerrotas: " + dados[2] + ".\tPontuacao: " + dados[3] + ";\n";
+                        
+                        conteudo += aux;
+                    }
+                }
+                return conteudo;
+            } catch (IOException ex) {
+                System.out.println("Erro: Não foi possível ler o arquivo!");
+            }
+        } catch (FileNotFoundException ex) {
+            System.out.println("Erro: Arquivo não encontrado!");
+        }
+        return conteudo;
     }
 }
 

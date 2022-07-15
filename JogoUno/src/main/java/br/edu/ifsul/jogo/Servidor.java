@@ -40,10 +40,19 @@ public class Servidor extends Thread {
             PrintStream saida = new PrintStream(jogador.getSocket().getOutputStream());
             jogador.setSaida(saida);
             boolean jogoPodecomecar = true;
+            boolean nomeValido = false;
             
             do {
-                nomeJogador = entrada.readLine();
-            } while (nomeJogador.trim().equals(""));
+                nomeValido = true;
+                nomeJogador = entrada.readLine().trim();
+                for (Jogador j : jogadores) {
+                    if (j.getNome() != null && nomeJogador.toUpperCase().equals(j.getNome().toUpperCase())) {
+                        sendTo(saida, "O nome informado já está na partida, informe outro nome.", jogador.getIp());
+                        nomeValido = false;
+                    }
+                }
+            } while (nomeJogador.trim().equals("") || !nomeValido);
+            nomeJogador = nomeJogador.toUpperCase();
             jogador.setNome(nomeJogador);
             
             if (jogador.getHost()) {
@@ -61,6 +70,7 @@ public class Servidor extends Thread {
                 jogoComecou = true;
                 darCartas();
                 salvarJogadores();
+                sendToAll("Ranking dos joagdores:\n" + BancoTxt.rankingJogadores());
             }
                             
             if (jogoComecou) {
@@ -287,6 +297,15 @@ public class Servidor extends Thread {
     public void finalizarPartida () throws IOException {
         partidaAcabou = true;
         sendToAll(jogador.getNome() + " Venceu o jogo!");
+        
+        BancoTxt.aumentaVitorias(nomeJogador);
+        for (Jogador j : jogadores) {
+            if (!nomeJogador.equals(j.getNome())) {
+                BancoTxt.aumentaDerrotas(j.getNome());
+            } 
+        }
+        sendToAll("Ranking dos joagdores:\n" + BancoTxt.rankingJogadores());
+        
         while (jogadores.size() > 0) {
             jogadores.get(0).getSocket().close();
             jogadores.remove(0);
@@ -295,11 +314,18 @@ public class Servidor extends Thread {
     
     public void finalizarPartidaSaidaJogador () throws IOException {
         jogadores.remove(indexJogador());
+        
         if (jogadores.size() == 1) {
+            BancoTxt.aumentaDerrotas(nomeJogador);
+            BancoTxt.aumentaVitorias(jogadores.get(0).getNome());
+            
             sendToAll(jogadores.get(0).getNome() + " é o vencedor do jogo!");
             sendToAll("Todos os outros jogadores saíram do jogo.");
+            sendToAll("Ranking dos joagdores:\n" + BancoTxt.rankingJogadores());
+            
             jogadores.get(0).setTerminarConexao(true);
         } else if (jogadores.size() != 0) {
+            BancoTxt.aumentaDerrotas(nomeJogador);
             while (jogador.getMao().size() > 0) {
                 baralho.getBaralho().add(jogador.getMao().get(0));
                 jogador.getMao().remove(0);
@@ -421,7 +447,7 @@ public class Servidor extends Thread {
         boolean selecionadaCartaInicio = false;
         while (iter.hasNext()) {
             Jogador j = iter.next();
-            for (int i = 0; i < 7; i++) {
+            for (int i = 0; i < 1; i++) {
                 Carta c = new Carta();
                 c = baralho.getBaralho().get(0);
                 baralho.getBaralho().remove(0);
